@@ -22,10 +22,10 @@ workspace "NSWI130" {
 
         notifications = external "Notifkační služba"
         enrollments = external "Enrollments"
-
+        
+        externalUI = softwareSystem "Externí UI"
         sch = softwareSystem "Rozvrhy" {
 
-            !docs "docs/softwareSystem.md"
 
             sis_fe = web "SIS frontend" {
                 timetable_front = web_comp "Zobrazení rozvrhu" "" "HTML+JS"
@@ -84,6 +84,7 @@ workspace "NSWI130" {
             teacher -> timetable_front "Kouká na rozvrh"
 
             course_provider_front -> course_provider "Hledá / čte předměty"
+            externalUI -> course_provider "Hledá / čte předměty"
             timetable_front -> timetable_provider "Čte rozvrhové lístky"
 
             course_provider -> simple_course_repository "Čte předměty"
@@ -132,7 +133,6 @@ workspace "NSWI130" {
             timeslot_repository -> timeslotDB "Čte data z"
 
         }
-
         production = deploymentEnvironment "Produkce" {
 
             deploymentNode "Prohlížeč admina" {
