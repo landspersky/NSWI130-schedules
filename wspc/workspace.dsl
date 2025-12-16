@@ -68,6 +68,8 @@ workspace "NSWI130" {
                 timeslot_repository = component "Adresář místností/časových slotů"
 
                 timetable_notifications = component "Správce notifikací o rozvrhu"
+                
+                enroll_communicator = component "Komunikátor pro zápisový modul"
             }
 
             scheduleDB = db "Databáze rozvrhů"
@@ -123,9 +125,10 @@ workspace "NSWI130" {
             ticket_manager -> timeslot_repository "Získává dostupné sloty"
             ticket_manager -> ticket_repository "Ukládá změny"
             ticket_manager -> timetable_notifications "Posílá eventy o změně"
-            ticket_manager -> enrollments "Žádá o odepsání studentů při mazání lístku"
+            ticket_manager -> enroll_communicator "Žádá o odepsání studentů při mazání lístku"
+            enroll_communicator -> enrollments "Komunikace dle API extreního modulu"
 
-            timetable_notifications -> enrollments "Ȟledá, koho se notifikace o změně rozvrhu týká"
+            timetable_notifications -> enroll_communicator "Ȟledá, koho se notifikace o změně rozvrhu týká"
             timetable_notifications -> notifications "Posílá notifikaci o změně rozvrhu"
 
             ticket_repository -> scheduleDB "Čte data z"
@@ -385,8 +388,10 @@ workspace "NSWI130" {
             teacher -> course_manager_front "Klikne na Smazat Předmět (a potvrdí)"
             
             course_manager -> ticket_manager "Požádá o smazání všech paralelek předmětu"
-            ticket_manager -> enrollments "Požádá o odepsání všech studentů z předmětu"
-            enrollments -> ticket_manager "Vrátí, že odepsáno"
+            ticket_manager -> enroll_communicator "Požádá o odepsání všech studentů z předmětu"
+            enroll_communicator -> enrollments
+            enrollments -> enroll_communicator
+            enroll_communicator -> ticket_manager "Vrátí, že odepsáno"
             ticket_manager -> ticket_repository "Žádá o smazání lístku"
             ticket_repository -> scheduleDB "Smaže lístek"
             scheduleDB -> ticket_repository "Vrátí, že smazáno"
@@ -397,7 +402,8 @@ workspace "NSWI130" {
             course_admin_controller -> course_manager_front "Vrátí přes api, že smazáno"
             course_manager_front -> teacher "Ozmámí učiteli, že je předmět smazán"
             
-            enrollments -> timetable_notifications "Pošle event o odepsání studentů"
+            enrollments -> enroll_communicator
+            enroll_communicator -> timetable_notifications "Pošle event o odepsání studentů"
             timetable_notifications -> notifications "Pošle žádosti o rozeslání notifikací"
         }
 
