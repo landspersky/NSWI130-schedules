@@ -37,6 +37,9 @@ workspace "NSWI130" {
                 ticket_manager_front = web_comp "Správa rozvrhových lístků" "" "HTML+JS"
             }
 
+            api_gateway = container "API gateway" {
+            }
+
             sis_be = container "SIS backend" {
                 timetable_provider = component "API kontroler pro čtení rozvrhů"
 
@@ -85,9 +88,11 @@ workspace "NSWI130" {
             teacher -> course_provider_front "Hledá předměty"
             teacher -> timetable_front "Kouká na rozvrh"
 
-            course_provider_front -> course_provider "Hledá / čte předměty"
+            course_provider_front -> api_gateway "Hledá / čte předměty"
+            api_gateway -> course_provider "Předává požadavky"
             externalUI -> course_provider "Hledá / čte předměty"
-            timetable_front -> timetable_provider "Čte rozvrhové lístky"
+            timetable_front -> api_gateway "Čte rozvrhové lístky"
+            api_gateway -> timetable_provider "Předává požadavky"
 
             course_provider -> simple_course_repository "Čte předměty"
 
@@ -112,14 +117,16 @@ workspace "NSWI130" {
 
             timeslot_admin_controller -> timeslot_repository "Načítá časové sloty dle API požadavků"
 
-            course_manager_front -> course_admin_controller "Odesílá požadavky uživatele"
+            course_manager_front -> api_gateway "Odesílá požadavky uživatele"
+            api_gateway -> course_admin_controller "Předává požadavky"
 
             course_admin_controller -> course_manager  "Provádí změnu v předmětech"
             course_manager -> course_repository "Ukládá změny"
             course_manager -> ticket_manager "Maže lístky předmětu"
 
             scheduler_front -> ticket_admin_controller "Upravuje rozvrh"
-            ticket_manager_front -> ticket_admin_controller "Odesílá požadavky uživatele"
+            ticket_manager_front -> api_gateway "Odesílá požadavky uživatele"
+            api_gateway -> ticket_admin_controller "Odesílá požadavky uživatele"
 
             ticket_admin_controller -> ticket_manager "Provádí změny nad rozvrhovými lístky"
             ticket_manager -> timeslot_repository "Získává dostupné sloty"
@@ -150,6 +157,10 @@ workspace "NSWI130" {
                 containerInstance sis_fe
             }
 
+            deploymentNode "API Server" "" "Nginx" {
+                containerInstance api_gateway
+            }
+
             deploymentNode "Hardware" {
                 deploymentNode "Container orchestration system" "" "Kubernetes" {
                     deploymentNode "Databases" "" "Docker container" {
@@ -174,7 +185,12 @@ workspace "NSWI130" {
         }
 
         development = deploymentEnvironment "Development prostředí" {
+
             deploymentNode "Počítač vývojáře" "" "Arch linux" {
+                deploymentNode "API Server" "" "Nginx" {
+                    containerInstance api_gateway
+                }
+                
                 deploymentNode "Prohlížeč vývojáře" {
                     containerInstance sis_admin_fe
                     containerInstance sis_fe
@@ -248,12 +264,14 @@ workspace "NSWI130" {
             autoLayout lr
 
             student -> course_provider_front "Otevře 'Předměty'"
-            course_provider_front -> course_provider "Požádá o seznam"
+            course_provider_front -> api_gateway "Požádá o seznam"
+            api_gateway -> course_provider "Přepošle požadavek"
             course_provider -> simple_course_repository "Načte data"
             simple_course_repository -> courseDB "Čte databázi"
             courseDB -> simple_course_repository "Vrátí data"
             simple_course_repository -> course_provider "Vrátí seznam"
-            course_provider -> course_provider_front "Vrátí výsledky"
+            course_provider -> api_gateway "Vrátí výsledky"
+            api_gateway -> course_provider_front "Předá výsledky"
             course_provider_front -> student "Zobrazí seznam předmětů"
         }
 
@@ -264,8 +282,10 @@ workspace "NSWI130" {
             student -> timetable_front "Klikne 'Zobrazit rozvrh'"
             timetable_front -> student "Zobrazí rozvrh uživateli"
 
-            timetable_front -> timetable_provider "Požádá o rozvrh (pomocí courseID)"
-            timetable_provider -> timetable_front "Vrátí agregovaný rozvrh"
+            timetable_front ->  api_gateway "Požádá o rozvrh (pomocí courseID)"
+            api_gateway -> timetable_provider "Přepošle požadavek"
+            timetable_provider -> api_gateway "Vrátí agregovaný rozvrh"
+            api_gateway -> timetable_front "Předá výsledek"
 
             timetable_provider -> simple_ticket_repository "Načte rozvrhové lístky"
             timetable_provider -> simple_timeslot_repository "Načte časoprostor"
@@ -331,7 +351,8 @@ workspace "NSWI130" {
             course_manager_front -> teacher "Zobrazí formulář"
 
             teacher -> course_manager_front "Odešle vyplněný formulář"
-            course_manager_front -> course_admin_controller "Odesílá data přes API"
+            course_manager_front -> api_gateway "Odesílá data přes API"
+            api_gateway -> course_admin_controller "Přeposílá požadavek"
             course_admin_controller -> course_manager "Předává požadavek"
             course_manager -> course_repository "Ukládá předmět"
             course_repository -> courseDB "Zapisuje data"
@@ -339,7 +360,8 @@ workspace "NSWI130" {
             courseDB -> course_repository "Potvrzuje zápis"
             course_repository -> course_manager "Potvrzuje uložení"
             course_manager -> course_admin_controller "Potvrzuje uložení"
-            course_admin_controller -> course_manager_front "Odesílá API odpověď"
+            course_admin_controller -> api_gateway "Odesílá API odpověď"
+            api_gateway -> course_manager_front "Předává odpověď"
             course_manager_front -> teacher "Zobrazí potvrzení"
         }
         
@@ -348,16 +370,19 @@ workspace "NSWI130" {
             autoLayout lr
 
             teacher -> course_provider_front "Otevře 'Předměty'"
-            course_provider_front -> course_provider "Požádá o seznam"
+            course_provider_front -> api_gateway "Požádá o seznam"
+            api_gateway -> course_provider "Přepošle požadavek"
             course_provider -> simple_course_repository "Načte data"
             simple_course_repository -> courseDB "Čte databázi"
             courseDB -> simple_course_repository "Vrátí data"
             simple_course_repository -> course_provider "Vrátí seznam"
-            course_provider -> course_provider_front "Vrátí výsledky"
+            course_provider -> api_gateway "Vrátí výsledky"
+            api_gateway -> course_provider_front "Předá výsledky"
             course_provider_front -> teacher "Zobrazí seznam předmětů"
             
             teacher -> course_manager_front "Otevře úpravu předmětu"
-            course_manager_front -> course_admin_controller "Požádá o data"
+            course_manager_front -> api_gateway "Požádá o data"
+            api_gateway -> course_admin_controller "Přeposílá požadavek"
             course_admin_controller -> course_manager "Požádá o data"
             course_manager -> course_repository "Načte data"
             course_repository -> courseDB "Čte databázi"
@@ -365,11 +390,13 @@ workspace "NSWI130" {
             courseDB -> course_repository "Vrací data"
             course_repository -> course_manager "Vrací data"
             course_manager -> course_admin_controller "Vrací data"
-            course_admin_controller -> course_manager_front "Předává požadavek"
+            course_admin_controller -> api_gateway "Předává odpověď"
+            api_gateway -> course_manager_front "Předává odpověď"
             course_manager_front -> teacher "Zobrazí vyplněný formulář"
             
             teacher -> course_manager_front "Odešle vyplněný formulář"
-            course_manager_front -> course_admin_controller "Odesílá data přes API"
+            course_manager_front -> api_gateway "Odesílá data přes API"
+            api_gateway -> course_admin_controller "Přeposílá požadavek"
             course_admin_controller -> course_manager "Předává požadavek"
             course_manager -> course_repository "Ukládá předmět"
             course_repository -> courseDB "Zapisuje data"
@@ -377,7 +404,8 @@ workspace "NSWI130" {
             courseDB -> course_repository "Potvrzuje zápis"
             course_repository -> course_manager "Potvrzuje uložení"
             course_manager -> course_admin_controller "Potvrzuje vytvoření"
-            course_admin_controller -> course_manager_front "Odpovídá kladně na API dotaz"
+            course_admin_controller -> api_gateway "Odpovídá kladně na API dotaz"
+            api_gateway -> course_manager_front "Předává odpověď"
             course_manager_front -> teacher "Zobrazí potvrzení"
         }
 
@@ -399,7 +427,8 @@ workspace "NSWI130" {
             ticket_manager -> course_manager "Vrátí, že smazáno"
 
             course_manager -> course_admin_controller "Potvrzuje smazání"
-            course_admin_controller -> course_manager_front "Vrátí přes api, že smazáno"
+            course_admin_controller -> api_gateway "Vrátí přes api, že smazáno"
+            api_gateway -> course_manager_front "Předává odpověď"
             course_manager_front -> teacher "Ozmámí učiteli, že je předmět smazán"
             
             enrollments -> enroll_communicator
