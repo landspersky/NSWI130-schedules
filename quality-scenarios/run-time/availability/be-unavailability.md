@@ -6,13 +6,14 @@ Containers:
 - SIS Backend
 
 **Stimulus:**
-BE is temporarily unavailable due to heavy load or other problem.
+A request to backend fails due to its temporary unavailability.
 
 **Environment:**
 Production or development.
 
 **Problem:**
-Requests are not processed due to unavailability.
+Requests are not processed.
 
 **Solution:**
 Add API gateway with fault tolerance and retry mechanism.
+The said event will be logged and retried in under 1s.
