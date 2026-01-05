@@ -81,6 +81,7 @@ workspace "NSWI130" {
             courseDB = db "Databáze předmětů"
             timeslotDB = db "Databáze rozvrhových slotů"
             auditDB = db "Databáze audit logů"
+            gatewayDB = db "Databáze API gateway přístupů"
 
             scheduler_front = web "Rozvrhovadlo" "" "HTML+JS"
 
@@ -96,7 +97,8 @@ workspace "NSWI130" {
             externalUI -> course_provider "Hledá / čte předměty"
             timetable_front -> api_gateway "Čte rozvrhové lístky"
             api_gateway -> timetable_provider "Předává požadavky"
-
+            api_gateway -> gatewayDB "Loguje přístupy"
+            
             course_provider -> simple_course_repository "Čte předměty"
 
             timetable_provider -> simple_ticket_repository "Čte rozvrhové lístky"

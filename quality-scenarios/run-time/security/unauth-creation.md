@@ -1,19 +1,25 @@
 ﻿# Unauthorized user creating/modifying schedules
 
 Containers in question:
-- SIS adming Backend
+- API Gateway
+- SIS admin Backend
+
+Source of Stimulus: Unauthorized or anonymous user.
 
 Stimulus: Unauthorized user attempts to create or modify schedules.
 
-Environment: SIS Admin Backend
+Environment: SIS Admin Backend - production environment.
 
-Problem: Unauthorized access to schedule creation/modification functionality.
+Problem: Unauthorized access to schedule creation/modification endpoints.
 
-Solution:
-- Log of all unauthorized access attempts.
-- Log changes made to schedules, including user ID, timestamp,
-and details of the changes.
-- Implement alerting mechanism to notify administrators
-of repeated unauthorized access attempts.
-- After a certain number of anonymous failed attempts, 
-rate limit further attempts from the same source or temporarily block access.
+Response:
+- The system rejects the request HTTP 401/403.
+- All unauthorized attempts are logged (user ID if available, source, timestamp, endpoint).
+- Repeated unauthorized attempts trigger administrator alerts.
+- After exceeding a defined threshold, the source is rate-limited or temporarily blocked.
+- All authorized schedule changes are fully audited (who, when, what changed).
+
+Measure:
+- 100% of changes are logged.
+- Alerts are sent within 1 minute of more than 10 unauthorized attempts.
+- Rate limiting/blocking is enforced after 20 failed attempts within 10 minutes.

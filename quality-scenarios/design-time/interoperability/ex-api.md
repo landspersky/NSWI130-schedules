@@ -1,14 +1,23 @@
 ﻿# External UI vs SIS backend
 
 Containers in question:
-    - External UI
-    - SIS Backend
+- External UI
+- API Gateway 
+- SIS Backend
+
+Source of Stimulus:
+External UI
 
 Stimulus: External UI makes API request
 
-Environment: SIS Backend
+Environment: SIS Backend - production.
 
-Response: SIS backend processes the request and returns the appropriate response according to the API specification.
+Response:
+API Gateway authenticates, authorizes, and logs the request.
+SIS Backend processes the request and returns schedule data according to access rights.
+The response conforms to the API specification.
 
-Measure: Successful API communication.
-100% of schedules provided.
+Measure:
+\>= 99.9% of valid requests are successfully processed.
+100% of responses conform to the API schema.
+100% of requests are logged by the API Gateway.
