@@ -73,11 +73,14 @@ workspace "NSWI130" {
                 timetable_notifications = component "Správce notifikací o rozvrhu"
                 
                 enroll_communicator = component "Komunikátor pro zápisový modul"
+                
+                auditLogger = component "Auditor"
             }
 
             scheduleDB = db "Databáze rozvrhů"
             courseDB = db "Databáze předmětů"
             timeslotDB = db "Databáze rozvrhových slotů"
+            auditDB = db "Databáze audit logů"
 
             scheduler_front = web "Rozvrhovadlo" "" "HTML+JS"
 
@@ -141,6 +144,10 @@ workspace "NSWI130" {
             ticket_repository -> scheduleDB "Čte data z"
             course_repository -> courseDB "Čte data z"
             timeslot_repository -> timeslotDB "Čte data z"
+            
+            course_repository -> auditLogger "Loguje důležité operace nad předměty"
+            ticket_repository -> auditLogger "Loguje důležité operace nad rozvrhovými lístky"
+            auditLogger -> auditDB "Ukládá audit záznamy"
 
         }
         production = deploymentEnvironment "Produkce" {

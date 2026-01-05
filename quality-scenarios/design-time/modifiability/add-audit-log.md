@@ -2,30 +2,26 @@
 
 Containers concerned:
 
-- Správce předmětů
-- Správce rozvrhových lístků
-- Uložení/Historizace rozvrhových lístků
-- Uložení/Historizace předmětů
+- Ulozeni/historizace predmetu
+- Ulozeni/historizace rozvrhovych listku
 
-Stimulus: Compliance requirements demand complete audit trail of all course and
-timetable modifications (who changed what and when)
+Source of Stimulus: Teacher, who has governance over a course, made a mistake when editing the course.
 
-Environment: Development - adding new audit log container and database
+Stimulus: Administrator notices and needs to investigate who did it and what exactly happened.
+Inform other staff that, for example, they should double check the data they are submitting.
 
-Problem: System currently stores "deleted" revisions but lacks comprehensive
-audit logging. Need to add audit log container to track all important operations
-throughout the system.
+Environment: Admin Backend
 
-Fix: Developer:
+Response:
 
-1. Creates new container "Logger" with database "loggerDB"
-2. Manager components (course_manager, ticket_manager) send audit events after
-   successful important operations
+- System cannot provide audit trail - no logging mechanism exists
+- Administrator cannot determine who made the change or what the previous values were
+- Developer adds Logger container to enable audit trail for future incidents and implements it into appropriate components.
 
-Response: Audit logging added by modifying only manager components to emit
-events. Controllers, frontends, and read-path remain untouched.
+Measure: 2 man-day
 
-Measure:
+---
 
-- Few changes required: only manager components modified
-- No breaking changes to existing functionality
+Architectural problem: No mechanism to log who performed which operations and when. Cannot track modifications to courses or timetables.
+
+Design fix: Create Logger container with loggerDB. Manager components (course_manager, ticket_manager) emit audit events after successful operations.
