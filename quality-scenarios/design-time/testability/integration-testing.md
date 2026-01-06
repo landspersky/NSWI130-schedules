@@ -18,3 +18,6 @@ The system must support automated integration testing without requiring manual i
 - Provide mock or test implementations for external dependencies (e.g., notification service, authentication).
 - Allow test configuration to redirect notifications and logs to test sinks.
 - Ensure test data can be easily set up and torn down between test runs.
+
+**Architectural problems:**
+- No architecture changes needed. The current implementation is well split into components, allowing for easy mocking of external services.
